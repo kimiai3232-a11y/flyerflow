@@ -1,0 +1,132 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// Retail chain (e.g., Walmart, Canadian Tire, Giant Tiger, Dollarama)
+model Chain {
+  id            String           @id @default(cuid())
+  name          String           @unique
+  slug          String           @unique
+  logoUrl       String?
+  websiteUrl    String
+  flyerUrl      String?          // Base URL for weekly flyers
+  isActive      Boolean          @default(true)
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  stores        Store[]
+  flyers        Flyer[]
+  affiliateLink AffiliateLink?
+}
+
+// Individual store location
+model Store {
+  id          String   @id @default(cuid())
+  chainId     String
+  chain       Chain    @relation(fields: [chainId], references: [id])
+  externalId  String   // Store number from the chain
+  name        String   // e.g., "Walmart Toronto - Dufferin Mall"
+  address     String
+  city        String
+  province    String
+  postalCode  String
+  latitude    Float
+  longitude   Float
+  phone       String?
+  hours       String?  // JSON string: { "mon": "8-22", "tue": "8-22", ... }
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([chainId, externalId])
+  @@index([city, province])
+  @@index([latitude, longitude])
+}
+
+// Weekly flyer for a chain
+model Flyer {
+  id          String       @id @default(cuid())
+  chainId     String
+  chain       Chain        @relation(fields: [chainId], references: [id])
+  externalId  String       // Flyer ID from chain's system
+  title       String       // e.g., "Weekly Flyer Dec 2-8"
+  validFrom   DateTime
+  validTo     DateTime
+  flyerUrl    String       // URL to view full flyer
+  pdfUrl      String?      // Direct PDF link if available
+  status      String       @default("ACTIVE") // ACTIVE, EXPIRED, ARCHIVED, ERROR
+  fetchedAt   DateTime     @default(now())
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  items       SaleItem[]
+
+  @@unique([chainId, externalId])
+  @@index([validFrom, validTo])
+  @@index([status])
+}
+
+// Individual sale item within a flyer
+model SaleItem {
+  id            String   @id @default(cuid())
+  flyerId       String
+  flyer         Flyer    @relation(fields: [flyerId], references: [id], onDelete: Cascade)
+  externalId    String   // Item ID from chain's system
+  name          String
+  description   String?
+  category      String?  // e.g., "Electronics", "Groceries", "Hardware"
+  subcategory   String?
+  brand         String?
+  regularPrice  Int?     // Original price in cents
+  salePrice     Int      // Sale price in cents
+  unit          String?  // e.g., "each", "lb", "kg", "100g"
+  quantity      Float?   // Quantity for unit price (e.g., 2 for "2 for $5")
+  imageUrl      String?
+  productUrl    String?  // Link to product page (affiliate link)
+  validFrom     DateTime
+  validTo       DateTime
+  isFeatured    Boolean  @default(false)
+  tags          String?  // Comma-separated: "clearance,weekly-deal,new"
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@unique([flyerId, externalId])
+  @@index([category])
+  @@index([salePrice])
+  @@index([validFrom, validTo])
+}
+
+// Category for filtering/browsing
+model Category {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  slug        String     @unique
+  parentId    String?
+  parent      Category?  @relation("CategoryHierarchy", fields: [parentId], references: [id])
+  children    Category[] @relation("CategoryHierarchy")
+  icon        String?
+  sortOrder   Int        @default(0)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
+
+// Affiliate tracking
+model AffiliateLink {
+  id          String   @id @default(cuid())
+  chainId     String   @unique
+  chain       Chain    @relation(fields: [chainId], references: [id])
+  baseUrl     String   // Base affiliate URL
+  paramName   String   @default("aff_id") // Query param name for affiliate ID
+  paramValue  String   // Our affiliate ID
+  isActive    Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}

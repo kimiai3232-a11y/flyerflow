@@ -1,0 +1,126 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #171717;
+  --color-primary: #2563eb;
+  --color-primary-hover: #1d4ed8;
+  --color-primary-focus: #3b82f6;
+  --color-border: #d1d5db;
+  --color-border-focus: #2563eb;
+  --color-error: #dc2626;
+  --color-success: #16a34a;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-primary: var(--color-primary);
+  --color-primary-hover: var(--color-primary-hover);
+  --color-primary-focus: var(--color-primary-focus);
+  --color-border: var(--color-border);
+  --color-border-focus: var(--color-border-focus);
+  --color-error: var(--color-error);
+  --color-success: var(--color-success);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --background: #0f172a;
+    --foreground: #f1f5f9;
+    --color-primary: #3b82f6;
+    --color-primary-hover: #60a5fa;
+    --color-primary-focus: #93c5fd;
+    --color-border: #334155;
+    --color-border-focus: #60a5fa;
+    --color-error: #f87171;
+    --color-success: #4ade80;
+  }
+}
+
+/* Focus visible styles for WCAG AA */
+:focus-visible {
+  outline: 2px solid var(--color-border-focus);
+  outline-offset: 2px;
+}
+
+/* Skip link for keyboard navigation */
+.skip-link {
+  position: absolute;
+  top: -100%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 24px;
+  background: var(--color-primary);
+  color: white;
+  font-weight: 600;
+  border-radius: 8px;
+  z-index: 100;
+  transition: top 0.2s;
+}
+
+.skip-link:focus {
+  top: 16px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  :root {
+    --color-border: #000;
+    --color-border-focus: #000;
+  }
+  .dark {
+    --color-border: #fff;
+    --color-border-focus: #fff;
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  line-height: 1.5;
+}
+
+/* Ensure minimum touch target size (44x44px) */
+button,
+a,
+input,
+select,
+textarea,
+[role="button"],
+[role="link"] {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+/* Form element improvements */
+input,
+select,
+textarea {
+  font-size: 16px; /* Prevents zoom on iOS */
+}
+
+label {
+  cursor: pointer;
+}
+
+/* Improve link underlines for accessibility */
+a:not([class*="text-"]) {
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
